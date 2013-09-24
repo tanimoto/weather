@@ -15,9 +15,11 @@ import play.api.db.slick.Config.driver.simple._
 import scala.concurrent.duration._
 
 import org.joda.time.DateTime
+import com.github.tototoshi.csv._
 
 import models._
 import utils.TMY
+import utils.IsdFtp
 
 object WeatherProtocol {
   case object Start
@@ -29,6 +31,9 @@ object WeatherActors {
 
   val tmyStation = system.actorOf(Props(new TmyStationActor()))
   val tmyWeather = system.actorOf(Props(new TmyWeatherActor()))
+
+  val isdStation = system.actorOf(Props(new IsdStationActor()))
+  val isdWeather = system.actorOf(Props(new IsdWeatherActor()))
 }
 
 //----------------------------------------------------------------------
@@ -87,6 +92,66 @@ class TmyWeatherActor extends Actor with ActorLogging {
             val tmy = TMY.parseTmy(station, resp.body)
             TmyWeatherDb.insertAll(tmy : _*)
           }
+      }
+    }
+  }
+}
+
+//----------------------------------------------------------------------
+class IsdStationActor extends Actor with ActorLogging {
+  import WeatherProtocol._
+
+  def receive = {
+    case Start => setup()
+  }
+
+  def setup() = {
+    DB.withSession { implicit session: simple.Session =>
+      if (Query(IsdStationDb).to[Seq].isEmpty) {
+        def parse(str: String): IsdStation = {
+          val list = str.split("/").last.split("-")
+          IsdStation(
+            usaf = list(0),
+            wban = list(1)
+          )
+        }
+
+        // Download list of files
+        val year = 2012
+        val noaa = new IsdFtp()
+        val data = noaa.listYear(year).map(parse)
+        noaa.disconnect()
+
+        IsdStationDb.insertAll(data : _*)
+      }
+    }
+  }
+}
+
+class IsdWeatherActor extends Actor with ActorLogging {
+  import WeatherProtocol._
+
+  def receive = {
+    case station: String =>
+      download(station)
+  }
+
+  def download(station: String) = {
+    DB.withSession { implicit session: simple.Session =>
+      val stations = Query(IsdStationDb)
+        .filter(s => s.usaf === station || s.wban === station).to[Seq]
+      for {
+        stat <- stations
+      } {
+        val year = 2012
+
+        // Download from FTP
+        val noaa = new IsdFtp()
+        val data = noaa.getWeather(stat.usaf, stat.wban, year).getOrElse(Seq())
+        noaa.disconnect()
+
+        // Insert into database
+        IsdWeatherDb.insertAll(data : _*)
       }
     }
   }

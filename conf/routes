@@ -14,6 +14,12 @@ GET     /api/typical                controllers.Application.getTypicalStations
 GET     /api/typical/:station       controllers.Application.getTypicalWeather(station: String)
 
 #------------------------------------------------------------------------
+# Historical Weather
+#------------------------------------------------------------------------
+GET     /api/historical             controllers.Application.getHistoricalStations
+GET     /api/historical/:station    controllers.Application.getHistoricalWeather(station: String)
+
+#------------------------------------------------------------------------
 # Static
 #------------------------------------------------------------------------
 # Map static resources from the /public folder to the /assets URL path

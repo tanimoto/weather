@@ -28,6 +28,8 @@ object Application extends Controller {
     Ok("Index")
   }
 
+  def todo(args: String*) = TODO
+
   //--------------------------------------------------------------------------
   def getTypicalStations = Action.async {
     Future[SimpleResult] {
@@ -49,6 +51,32 @@ object Application extends Controller {
           Ok(json)
         } else {
           WeatherActors.tmyWeather ! station
+          Ok("requested")
+        }
+      }
+    }
+  }
+
+  //--------------------------------------------------------------------------
+  def getHistoricalStations = Action.async {
+    Future[SimpleResult] {
+      DB.withSession { implicit session: simple.Session =>
+        val data = Query(IsdStationDb).to[Seq]
+        val json = Json.toJson(data)
+        Ok(json)
+      }
+    }
+  }
+
+  def getHistoricalWeather(station: String) = Action.async {
+    Future[SimpleResult] {
+      DB.withSession { implicit session: simple.Session =>
+        val data = Query(IsdWeatherDb).filter(_.usaf === station).to[Seq]
+        if (!data.isEmpty) {
+          val json = Json.toJson(data)
+          Ok(json)
+        } else {
+          WeatherActors.isdWeather ! station
           Ok("requested")
         }
       }

@@ -22,10 +22,18 @@ object Global extends GlobalSettings {
   }
 
   def setup() = {
+    // Default to UTC
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+    DateTimeZone.setDefault(UTC)
+
     import WeatherProtocol._
     WeatherActors
 
     // Setup TMY Stations
     WeatherActors.tmyStation ! Start
+    WeatherActors.tmyStation ! PoisonPill
+
+    WeatherActors.isdStation ! Start
+    WeatherActors.isdStation ! PoisonPill
   }
 }
