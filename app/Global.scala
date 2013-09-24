@@ -22,6 +22,10 @@ object Global extends GlobalSettings {
   }
 
   def setup() = {
+    import WeatherProtocol._
     WeatherActors
+
+    // Setup TMY Stations
+    WeatherActors.tmyStation ! Start
   }
 }

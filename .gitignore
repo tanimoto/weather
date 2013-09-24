@@ -1,6 +1,9 @@
 # Database
 database
 
+# Evalutions
+conf/evolutions
+
 logs
 project/project
 project/target
