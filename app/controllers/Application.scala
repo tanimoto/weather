@@ -20,6 +20,7 @@ import scala.concurrent.duration._
 import actors._
 import models._
 import models.Implicits._
+import utils.TMY
 
 object Application extends Controller {
 
@@ -38,4 +39,19 @@ object Application extends Controller {
     }
   }
 
+  def getTypicalWeather(station: String) = Action.async {
+    Future[SimpleResult] {
+      DB.withSession { implicit session: simple.Session =>
+        val data = Query(TmyWeatherDb).filter(_.usaf === station).to[Seq]
+        // Do we already have the data?
+        if (!data.isEmpty) {
+          val json = Json.toJson(data)
+          Ok(json)
+        } else {
+          WeatherActors.tmyWeather ! station
+          Ok("requested")
+        }
+      }
+    }
+  }
 }

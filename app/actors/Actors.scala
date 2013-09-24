@@ -17,6 +17,7 @@ import scala.concurrent.duration._
 import org.joda.time.DateTime
 
 import models._
+import utils.TMY
 
 object WeatherProtocol {
   case object Start
@@ -72,7 +73,22 @@ class TmyWeatherActor extends Actor with ActorLogging {
 
   def receive = {
     case station: String =>
-      // download(station)
+      download(station)
+  }
+
+  def download(station: String) = {
+    DB.withSession { implicit session: simple.Session =>
+
+      val url = s"http://rredc.nrel.gov/solar/old_data/nsrdb/1991-2005/data/tmy3/${station}TY.csv"
+      val fut = WS.url(url).get
+      fut.map {
+        case resp: Response =>
+          if (resp.status == 200) {
+            val tmy = TMY.parseTmy(station, resp.body)
+            TmyWeatherDb.insertAll(tmy : _*)
+          }
+      }
+    }
   }
 }
 

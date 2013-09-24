@@ -11,6 +11,7 @@ GET     /api                        controllers.Application.index
 # Typical Weather
 #------------------------------------------------------------------------
 GET     /api/typical                controllers.Application.getTypicalStations
+GET     /api/typical/:station       controllers.Application.getTypicalWeather(station: String)
 
 #------------------------------------------------------------------------
 # Static
