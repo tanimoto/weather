@@ -80,7 +80,7 @@ object TmyWeatherDb extends Table[TmyWeather]("TmyWeather") {
   def * = usaf ~ datetime ~ tempDry ~ tempDew ~ humi <>
     (TmyWeather, TmyWeather.unapply _)
 
-  // def pk = primaryKey("pk_TmyWeather", (usaf, datetime))
+  def pk = primaryKey("pk_TmyWeather", (usaf, datetime))
   def idx_usaf = index("idx_TmyWeather_usaf", usaf)
   def fk_station = foreignKey("fk_TmyStation", usaf, TmyStationDb)(_.usaf)
 }
@@ -118,7 +118,7 @@ object IsdWeatherDb extends Table[IsdWeather]("IsdWeather") {
   def * = usaf ~ wban ~ datetime ~ tempDry ~ tempDew <>
     (IsdWeather, IsdWeather.unapply _)
 
-  // def pk = primaryKey("pk_IsdWeather", (usaf, wban, datetime))
+  def pk = primaryKey("pk_IsdWeather", (usaf, wban, datetime))
   def idx_usaf = index("idx_IsdWeather_usaf", usaf)
   def idx_wban = index("idx_IsdWeather_wban", wban)
   def fk_station = foreignKey("fk_IsdStation", (usaf, wban),
