@@ -8,6 +8,12 @@ import org.joda.time.DateTime
 import com.github.tototoshi.slick.JodaSupport._
 
 object Implicits {
+
+  // Default to string datetime for Json
+  implicit val jodaDateWrites: Writes[DateTime] = new Writes[DateTime] {
+    def writes(d: DateTime): JsValue = JsString(d.toString())
+  }
+
   implicit val TmyStationReads = Json.reads[TmyStation]
   implicit val TmyStationWrites = Json.writes[TmyStation]
   implicit val TmyStationFormat = Json.format[TmyStation]
